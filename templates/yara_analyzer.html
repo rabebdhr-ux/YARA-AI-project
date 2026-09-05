@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% from 'components/macros.html' import alert, code_block %}
+
+{% block title %}YARA Rule Analyzer{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">YARA Rule Analyzer</h1>
+    <p class="page-subtitle">Evaluate the quality and effectiveness of YARA detection rules.</p>
+  </div>
+</div>
+
+<div class="yara-analyzer">
+  <div class="tab-group" role="tablist">
+    <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="paste">Paste YARA Rule</button>
+    <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="upload">Upload YARA Rule</button>
+  </div>
+
+  <form id="yaraAnalyzeForm" class="yara-form" method="POST" action="{{ url_for('yara_analyzer') }}" enctype="multipart/form-data">
+    <div class="tab-panel active" id="tab-paste" role="tabpanel">
+      <div class="card">
+        <div class="card__header">
+          <h3 class="card__title">Rule Editor</h3>
+        </div>
+        <div class="card__body">
+          <div class="code-editor-wrap">
+            <textarea name="yara_rule" id="yaraRuleInput" class="code-editor" rows="16" spellcheck="false" placeholder="rule Suspicious_File
+{
+    strings:
+        $a = &quot;powershell&quot;
+        $b = &quot;cmd.exe&quot;
+
+    condition:
+        any of them
+}">{% if yara_rule %}{{ yara_rule }}{% else %}rule Suspicious_File
+{
+    meta:
+        description = "Detects suspicious command execution patterns"
+        author = "Security Team"
+        severity = "medium"
+
+    strings:
+        $a = "powershell" nocase
+        $b = "cmd.exe" nocase
+        $c = /https?:\/\/[^\s]{8,}/
+
+    condition:
+        any of them
+}{% endif %}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-upload" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card__header">
+          <h3 class="card__title">Upload Rule File</h3>
+        </div>
+        <div class="card__body">
+          <div class="upload-zone upload-zone--compact" id="yaraUploadZone">
+            <div class="upload-zone__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <p class="upload-zone__subtitle">Upload a .yar or .yara file</p>
+            <input type="file" name="yara_file" id="yaraFileInput" accept=".yar,.yara,.txt" hidden>
+            <button type="button" class="btn btn-secondary" id="yaraSelectFileBtn">Select File</button>
+            <span class="upload-zone__filename" id="yaraFileName"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg" id="analyzeRuleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Analyze Rule
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/yara.js') }}"></script>
+{% endblock %}

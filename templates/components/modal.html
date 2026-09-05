@@ -1,0 +1,18 @@
+{# Modal component — include with id and content block #}
+<div class="modal" id="{{ modal_id }}" role="dialog" aria-modal="true" aria-labelledby="{{ modal_id }}-title" hidden>
+  <div class="modal__backdrop" data-modal-close></div>
+  <div class="modal__container">
+    <div class="modal__header">
+      <h3 class="modal__title" id="{{ modal_id }}-title">{{ modal_title }}</h3>
+      <button type="button" class="modal__close" data-modal-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal__body">
+      {{ modal_body }}
+    </div>
+    {% if modal_footer %}
+    <div class="modal__footer">
+      {{ modal_footer }}
+    </div>
+    {% endif %}
+  </div>
+</div>

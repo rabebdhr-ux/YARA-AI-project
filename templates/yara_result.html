@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% from 'components/macros.html' import threat_badge, alert, code_block %}
+
+{% block title %}YARA Rule Analysis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">YARA Rule Analysis Result</h1>
+    <p class="page-subtitle">Quality evaluation for: <code>{{ rule_name | default('Suspicious_File') }}</code></p>
+  </div>
+  <div class="page-header__actions">
+    <a href="{{ url_for('yara_analyzer') }}" class="btn btn-secondary">Analyze Another Rule</a>
+  </div>
+</div>
+
+<div class="yara-result-summary">
+  <div class="card score-card">
+    <div class="score-card__ring" data-score="{{ quality_score | default(78) }}">
+      <svg viewBox="0 0 120 120">
+        <circle class="score-card__bg" cx="60" cy="60" r="52"/>
+        <circle class="score-card__fill" cx="60" cy="60" r="52"/>
+      </svg>
+      <div class="score-card__value">
+        <span class="score-card__number">{{ quality_score | default(78) }}</span>
+        <span class="score-card__max">/ 100</span>
+      </div>
+    </div>
+    <span class="score-card__label">Quality Score</span>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <span class="metric-card__label">Complexity</span>
+      <span class="metric-card__value">{{ complexity | default('Medium') }}</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-card__label">False Positive Risk</span>
+      <span class="metric-card__value metric-card__value--warning">{{ false_positive_risk | default('Medium') }}</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-card__label">Detection Strength</span>
+      <span class="metric-card__value metric-card__value--good">{{ detection_strength | default('Good') }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="result-grid">
+  <div class="card">
+    <div class="card__header">
+      <h3 class="card__title">Rule Structure</h3>
+    </div>
+    <div class="card__body">
+      <dl class="info-list">
+        <div class="info-list__item"><dt>Number of Strings</dt><dd>{{ structure.string_count | default(3) }}</dd></div>
+        <div class="info-list__item"><dt>Number of Conditions</dt><dd>{{ structure.condition_count | default(1) }}</dd></div>
+        <div class="info-list__item"><dt>Use of Regex</dt><dd>{{ structure.uses_regex | default('Yes') }}</dd></div>
+        <div class="info-list__item"><dt>Use of Wildcards</dt><dd>{{ structure.uses_wildcards | default('No') }}</dd></div>
+        <div class="info-list__item"><dt>Complexity</dt><dd>{{ structure.complexity | default('Medium') }}</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__header">
+      <h3 class="card__title">Potential Problems</h3>
+    </div>
+    <div class="card__body">
+      {% for problem in problems | default(['Condition may be too broad — "any of them" with generic strings increases match rate.', 'Generic indicators like "powershell" and "cmd.exe" may increase false positives in legitimate scripts.', 'Missing file type or size constraints in condition block.']) %}
+      <div class="warning-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <p>{{ problem }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card card--wide">
+    <div class="card__header">
+      <h3 class="card__title">Recommendations</h3>
+      <span class="card__subtitle">AI-generated suggestions</span>
+    </div>
+    <div class="card__body">
+      <ul class="recommendations-list">
+        {% for rec in recommendations | default(['Add more specific indicators such as encoded payloads or unique malware signatures.', 'Combine multiple characteristics to improve detection precision (e.g., require 2+ string matches).', 'Add file type constraints using filetype or magic headers.', 'Include metadata tags for severity and author tracking.', 'Consider adding a filesize condition to exclude small benign files.']) %}
+        <li>{{ rec }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card--wide">
+    <div class="card__header">
+      <h3 class="card__title">Improved Rule</h3>
+      <span class="card__subtitle">Suggested enhancement</span>
+    </div>
+    <div class="card__body">
+      {{ code_block(improved_rule | default('rule Suspicious_File_Improved
+{
+    meta:
+        description = "Detects suspicious command execution with multiple indicators"
+        author = "Security Team"
+        severity = "high"
+
+    strings:
+        $ps1 = "powershell" nocase
+        $cmd = "cmd.exe" nocase
+        $url = /https?:\\/\\/[a-zA-Z0-9.-]+\\/[a-zA-Z0-9._%-]{8,}/
+        $b64 = /[A-Za-z0-9+\\/]{50,}={0,2}/
+
+    condition:
+        filesize < 10MB and
+        2 of ($ps1, $cmd, $url, $b64)
+}'), 'yara') }}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/yara.js') }}"></script>
+{% endblock %}

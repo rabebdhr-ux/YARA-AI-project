@@ -1,0 +1,152 @@
+{# Reusable Jinja2 macros for YARA AI Platform #}
+
+{% macro stat_card(icon, label, value, trend=None, trend_type='neutral') %}
+<div class="stat-card">
+  <div class="stat-card__icon">{{ icon | safe }}</div>
+  <div class="stat-card__content">
+    <span class="stat-card__label">{{ label }}</span>
+    <span class="stat-card__value">{{ value }}</span>
+    {% if trend %}
+    <span class="stat-card__trend stat-card__trend--{{ trend_type }}">{{ trend }}</span>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro threat_badge(level, size='md') %}
+{% set level_upper = level | upper %}
+<span class="threat-badge threat-badge--{{ level_upper | lower }} threat-badge--{{ size }}">{{ level_upper }}</span>
+{% endmacro %}
+
+{% macro risk_indicator(level, label=None) %}
+<div class="risk-indicator risk-indicator--{{ level | lower }}">
+  <span class="risk-indicator__dot"></span>
+  {% if label %}<span class="risk-indicator__label">{{ label }}</span>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro progress_step(name, status='waiting', description='') %}
+<div class="progress-step progress-step--{{ status }}" data-step="{{ name | lower | replace(' ', '-') }}">
+  <div class="progress-step__indicator">
+    {% if status == 'completed' %}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    {% elif status == 'running' %}
+    <span class="spinner"></span>
+    {% elif status == 'error' %}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    {% else %}
+    <span class="progress-step__number"></span>
+    {% endif %}
+  </div>
+  <div class="progress-step__content">
+    <span class="progress-step__name">{{ name }}</span>
+    {% if description %}<span class="progress-step__desc">{{ description }}</span>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro code_block(code, language='yara') %}
+<div class="code-block">
+  <div class="code-block__header">
+    <span class="code-block__lang">{{ language | upper }}</span>
+    <button type="button" class="code-block__copy btn-icon" data-copy-target="code" aria-label="Copy code">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+  </div>
+  <pre class="code-block__content"><code class="language-{{ language }}">{{ code }}</code></pre>
+</div>
+{% endmacro %}
+
+{% macro yara_rule_card(rule_name, severity, description, indicators) %}
+<div class="yara-rule-card">
+  <div class="yara-rule-card__header">
+    <h4 class="yara-rule-card__name">{{ rule_name }}</h4>
+    {{ threat_badge(severity, 'sm') }}
+  </div>
+  <p class="yara-rule-card__desc">{{ description }}</p>
+  <div class="yara-rule-card__indicators">
+    <span class="yara-rule-card__label">Matched Indicators:</span>
+    <ul>
+      {% for indicator in indicators %}
+      <li><code>{{ indicator }}</code></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro ai_analysis_card(assessment, confidence, explanation, family, recommendations) %}
+<div class="ai-analysis-card">
+  <div class="ai-analysis-card__header">
+    <div class="ai-analysis-card__badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.57-3.25 3.92L12 22l-.75-12.08A4.001 4.001 0 0 1 12 2z"/><path d="M8 8h8M8 12h5"/></svg>
+      AI Assessment
+    </div>
+    <span class="ai-analysis-card__disclaimer">Not a confirmed detection — supplementary analysis only</span>
+  </div>
+  <div class="ai-analysis-card__grid">
+    <div class="ai-analysis-card__field">
+      <span class="ai-analysis-card__label">Threat Assessment</span>
+      <span class="ai-analysis-card__value">{{ assessment }}</span>
+    </div>
+    <div class="ai-analysis-card__field">
+      <span class="ai-analysis-card__label">Confidence Score</span>
+      <span class="ai-analysis-card__value">{{ confidence }}%</span>
+    </div>
+    <div class="ai-analysis-card__field ai-analysis-card__field--full">
+      <span class="ai-analysis-card__label">Explanation</span>
+      <p class="ai-analysis-card__text">{{ explanation }}</p>
+    </div>
+    <div class="ai-analysis-card__field">
+      <span class="ai-analysis-card__label">Possible Malware Family</span>
+      <span class="ai-analysis-card__value">{{ family }}</span>
+    </div>
+    <div class="ai-analysis-card__field ai-analysis-card__field--full">
+      <span class="ai-analysis-card__label">Security Recommendations</span>
+      <ul class="ai-analysis-card__list">
+        {% for rec in recommendations %}
+        <li>{{ rec }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro report_card(report_id, filename, threat_level, date, status) %}
+<div class="report-card">
+  <div class="report-card__header">
+    <span class="report-card__id">#{{ report_id }}</span>
+    {{ threat_badge(threat_level, 'sm') }}
+  </div>
+  <h4 class="report-card__filename">{{ filename }}</h4>
+  <div class="report-card__meta">
+    <span>{{ date }}</span>
+    <span class="report-card__status report-card__status--{{ status | lower }}">{{ status }}</span>
+  </div>
+  <div class="report-card__actions">
+    <a href="{{ url_for('report_view', report_id=report_id) }}" class="btn btn-sm btn-secondary">View</a>
+    <a href="{{ url_for('report_download', report_id=report_id) }}" class="btn btn-sm btn-primary">Download PDF</a>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro alert(type, message, dismissible=True) %}
+<div class="alert alert--{{ type }}{% if dismissible %} alert--dismissible{% endif %}" role="alert">
+  <div class="alert__icon">
+    {% if type == 'warning' %}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    {% elif type == 'danger' %}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    {% elif type == 'success' %}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    {% else %}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    {% endif %}
+  </div>
+  <div class="alert__content">{{ message }}</div>
+  {% if dismissible %}
+  <button type="button" class="alert__close" aria-label="Dismiss">&times;</button>
+  {% endif %}
+</div>
+{% endmacro %}

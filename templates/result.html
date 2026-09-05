@@ -1,0 +1,866 @@
+{% extends 'base.html' %}
+
+{% from 'components/macros.html' import threat_badge, yara_rule_card, ai_analysis_card, alert, code_block %}
+
+{% block title %}Analysis Report{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+  <div>
+
+    <h1 class="page-title">
+      Security Analysis Report
+    </h1>
+
+    <p class="page-subtitle">
+      Scan ID:
+      {{ scan_id | default('unknown') }}
+      —
+      {{ result.scan_date | default('Unknown') }}
+    </p>
+
+  </div>
+
+  <div class="page-header__actions">
+
+    <a
+      href="{{ url_for('report_download', report_id=result.report_id | default('unknown')) }}"
+      class="btn btn-primary"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+
+        <path
+          d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+        />
+
+        <polyline
+          points="7 10 12 15 17 10"
+        />
+
+        <line
+          x1="12"
+          y1="15"
+          x2="12"
+          y2="3"
+        />
+
+      </svg>
+
+      Download PDF Report
+
+    </a>
+
+    <a
+      href="{{ url_for('dashboard') }}"
+      class="btn btn-secondary"
+    >
+      Back to Dashboard
+    </a>
+
+    <a
+      href="{{ url_for('analysis') }}"
+      class="btn btn-secondary"
+    >
+      New Analysis
+    </a>
+
+  </div>
+
+</div>
+
+
+{# ============================================================
+   THREAT SUMMARY
+   ============================================================ #}
+
+<div
+  class="threat-summary threat-summary--{{ result.threat_level | default('SAFE') | lower }}"
+>
+
+  <div class="threat-summary__main">
+
+    <div class="threat-summary__field">
+
+      <span class="threat-summary__label">
+        Final Risk Assessment
+      </span>
+
+      {{ threat_badge(
+          result.threat_level | default('SAFE'),
+          'lg'
+      ) }}
+
+    </div>
+
+
+    <div class="threat-summary__field">
+
+      <span class="threat-summary__label">
+        Confidence
+      </span>
+
+      <span class="threat-summary__value">
+        {{ result.confidence | default(0) }}%
+      </span>
+
+    </div>
+
+
+    <div class="threat-summary__field">
+
+      <span class="threat-summary__label">
+        Status
+      </span>
+
+      <span class="threat-summary__status">
+        {{ result.status | default('Unknown') }}
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <p class="threat-summary__note">
+
+    This assessment combines YARA rule matches,
+    static feature analysis, and AI-assisted evaluation.
+
+    Absence of YARA matches does not confirm a file is safe.
+
+  </p>
+
+</div>
+
+
+<div class="result-grid">
+
+
+  {# ============================================================
+     FILE INFORMATION
+     ============================================================ #}
+
+  <div class="card">
+
+    <div class="card__header">
+
+      <h3 class="card__title">
+        File Information
+      </h3>
+
+    </div>
+
+
+    <div class="card__body">
+
+      <dl class="info-list">
+
+        <div class="info-list__item">
+
+          <dt>Filename</dt>
+
+          <dd>
+            {{ result.filename | default('Unknown') }}
+          </dd>
+
+        </div>
+
+
+        <div class="info-list__item">
+
+          <dt>File Size</dt>
+
+          <dd>
+            {{ result.file_size | default('Unknown') }}
+          </dd>
+
+        </div>
+
+
+        <div class="info-list__item">
+
+          <dt>File Type</dt>
+
+          <dd>
+            {{ result.file_type | default('Unknown') }}
+          </dd>
+
+        </div>
+
+
+        <div class="info-list__item">
+
+          <dt>SHA-256</dt>
+
+          <dd>
+
+            <code class="hash">
+              {{ result.sha256 | default('Unknown') }}
+            </code>
+
+          </dd>
+
+        </div>
+
+
+        <div class="info-list__item">
+
+          <dt>MD5</dt>
+
+          <dd>
+
+            <code class="hash">
+              {{ result.md5 | default('Unknown') }}
+            </code>
+
+          </dd>
+
+        </div>
+
+
+        <div class="info-list__item">
+
+          <dt>Entropy</dt>
+
+          <dd>
+            {{ result.entropy | default(0) }}
+          </dd>
+
+        </div>
+
+
+        <div class="info-list__item">
+
+          <dt>Scan Date</dt>
+
+          <dd>
+            {{ result.scan_date | default('Unknown') }}
+          </dd>
+
+        </div>
+
+      </dl>
+
+    </div>
+
+  </div>
+
+
+  {# ============================================================
+     YARA DETECTION
+     ============================================================ #}
+
+  <div class="card card--wide">
+
+    <div class="card__header">
+
+      <h3 class="card__title">
+        YARA Detection
+      </h3>
+
+      <span class="card__badge">
+
+        {{ result.yara_matches | default(0) }}
+
+        rule(s) matched
+
+      </span>
+
+    </div>
+
+
+    <div class="card__body">
+
+      {% if result.yara_rules %}
+
+        {% for rule in result.yara_rules %}
+
+          {{ yara_rule_card(
+              rule.name,
+              rule.severity,
+              rule.description,
+              rule.indicators
+          ) }}
+
+        {% endfor %}
+
+      {% else %}
+
+        <p class="ai-section__text">
+          No YARA rules matched this file.
+        </p>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+
+  {# ============================================================
+     FEATURE ANALYSIS
+     ============================================================ #}
+
+  <div class="card card--wide">
+
+    <div class="card__header">
+
+      <h3 class="card__title">
+        Feature Analysis
+      </h3>
+
+      <span class="card__subtitle">
+        Static analysis indicators
+      </span>
+
+    </div>
+
+
+    <div class="card__body">
+
+      <div class="feature-grid">
+
+
+        <div class="feature-item">
+
+          <span class="feature-item__label">
+            Entropy
+          </span>
+
+          <span class="feature-item__value">
+            {{ result.features.entropy | default(0) }}
+          </span>
+
+          {% if result.features.entropy | default(0) > 7.0 %}
+
+            <span class="feature-item__note">
+              High — possible obfuscation
+            </span>
+
+          {% elif result.features.entropy | default(0) > 6.5 %}
+
+            <span class="feature-item__note">
+              Moderate entropy
+            </span>
+
+          {% else %}
+
+            <span class="feature-item__note">
+              Normal range
+            </span>
+
+          {% endif %}
+
+        </div>
+
+
+        <div class="feature-item">
+
+          <span class="feature-item__label">
+            PE Sections
+          </span>
+
+          <span class="feature-item__value">
+            {{ result.features.pe_sections | default('N/A') }}
+          </span>
+
+        </div>
+
+
+        <div class="feature-item">
+
+          <span class="feature-item__label">
+            Imported DLLs
+          </span>
+
+          <span class="feature-item__value">
+            {{ result.features.imported_dlls | default('N/A') }}
+          </span>
+
+        </div>
+
+
+        <div class="feature-item feature-item--full">
+
+          <span class="feature-item__label">
+            Suspicious APIs
+          </span>
+
+          {% if result.features.suspicious_apis %}
+
+            <ul class="feature-item__list">
+
+              {% for api in result.features.suspicious_apis %}
+
+                <li>
+                  <code>{{ api }}</code>
+                </li>
+
+              {% endfor %}
+
+            </ul>
+
+          {% else %}
+
+            <p class="ai-section__text">
+              No suspicious APIs identified.
+            </p>
+
+          {% endif %}
+
+        </div>
+
+
+        <div class="feature-item feature-item--full">
+
+          <span class="feature-item__label">
+            Embedded Strings
+          </span>
+
+          {% if result.features.strings %}
+
+            <ul class="feature-item__list">
+
+              {% for s in result.features.strings %}
+
+                <li>
+                  <code>{{ s }}</code>
+                </li>
+
+              {% endfor %}
+
+            </ul>
+
+          {% else %}
+
+            <p class="ai-section__text">
+              No embedded strings available.
+            </p>
+
+          {% endif %}
+
+        </div>
+
+
+        <div class="feature-item feature-item--full">
+
+          <span class="feature-item__label">
+            File Metadata
+          </span>
+
+          <dl class="info-list info-list--compact">
+
+            <div class="info-list__item">
+
+              <dt>Author</dt>
+
+              <dd>
+                {{ result.features.metadata.author | default('Unknown') }}
+              </dd>
+
+            </div>
+
+
+            <div class="info-list__item">
+
+              <dt>Created</dt>
+
+              <dd>
+                {{ result.features.metadata.created | default('Unknown') }}
+              </dd>
+
+            </div>
+
+
+            <div class="info-list__item">
+
+              <dt>Modified</dt>
+
+              <dd>
+                {{ result.features.metadata.modified | default('Unknown') }}
+              </dd>
+
+            </div>
+
+          </dl>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  {# ============================================================
+     AI ANALYSIS
+     ============================================================ #}
+
+  <div class="card card--wide">
+
+    <div class="card__header">
+
+      <h3 class="card__title">
+        AI Analysis
+      </h3>
+
+      <span class="card__subtitle">
+        AI-assisted interpretation of the YARA result
+      </span>
+
+    </div>
+
+
+    <div class="card__body">
+
+
+      {# AI ERROR #}
+
+      <div
+        id="ai-error-container"
+        class="alert alert--danger"
+        role="alert"
+        {% if not result.ai.error %}style="display: none;"{% endif %}
+      >
+
+        <strong>
+          AI Analysis Error:
+        </strong>
+
+        <span id="ai-error-text">{{ result.ai.error }}</span>
+
+      </div>
+
+
+      {# SUMMARY #}
+
+      <div class="ai-section">
+
+        <h4 class="ai-section__title">
+          Summary
+        </h4>
+
+        <p class="ai-section__text" id="ai-summary-text">
+
+          {{ result.ai.summary | default(
+              'No AI summary available.'
+          ) }}
+
+        </p>
+
+      </div>
+
+
+      {# REASONS #}
+
+      <div class="ai-section">
+
+        <h4 class="ai-section__title">
+
+          {% if result.yara_matches | default(0) > 0 %}
+
+            Why It Matched
+
+          {% else %}
+
+            Why It Did Not Match
+
+          {% endif %}
+
+        </h4>
+
+
+        <ul
+          class="feature-item__list"
+          id="ai-reasons-list"
+          {% if not result.ai.reasons %}style="display: none;"{% endif %}
+        >
+
+          {% for reason in result.ai.reasons %}
+
+            <li>
+              {{ reason }}
+            </li>
+
+          {% endfor %}
+
+        </ul>
+
+        <p
+          class="ai-section__text"
+          id="ai-reasons-empty"
+          {% if result.ai.reasons %}style="display: none;"{% endif %}
+        >
+
+          No detailed reasoning was provided by the AI.
+
+        </p>
+
+      </div>
+
+
+      {# EVIDENCE #}
+
+      <div class="ai-section">
+
+        <h4 class="ai-section__title">
+          Evidence
+        </h4>
+
+
+        <ul
+          class="feature-item__list"
+          id="ai-evidence-list"
+          {% if not result.ai.evidence %}style="display: none;"{% endif %}
+        >
+
+          {% for evidence in result.ai.evidence %}
+
+            <li>
+              {{ evidence }}
+            </li>
+
+          {% endfor %}
+
+        </ul>
+
+        <p
+          class="ai-section__text"
+          id="ai-evidence-empty"
+          {% if result.ai.evidence %}style="display: none;"{% endif %}
+        >
+
+          No additional evidence was provided.
+
+        </p>
+
+      </div>
+
+
+      {# RISK ASSESSMENT #}
+
+      <div class="ai-section">
+
+        <h4 class="ai-section__title">
+          AI Risk Assessment
+        </h4>
+
+        <p class="ai-section__text" id="ai-risk-assessment-text">
+
+          {{ result.ai.risk_assessment | default(
+              'No AI risk assessment available.'
+          ) }}
+
+        </p>
+
+      </div>
+
+
+      {# RECOMMENDATIONS #}
+
+      <div class="ai-section">
+
+        <h4 class="ai-section__title">
+          Recommendations
+        </h4>
+
+
+        <ol
+          class="feature-item__list"
+          id="ai-recommendations-list"
+          {% if not result.ai.recommendations %}style="display: none;"{% endif %}
+        >
+
+          {% for recommendation in result.ai.recommendations %}
+
+            <li>
+              {{ recommendation }}
+            </li>
+
+          {% endfor %}
+
+        </ol>
+
+        <p
+          class="ai-section__text"
+          id="ai-recommendations-empty"
+          {% if result.ai.recommendations %}style="display: none;"{% endif %}
+        >
+
+          No recommendations were provided.
+
+        </p>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+</div>
+<script>
+(function () {
+
+    const scanId = "{{ scan_id }}";
+
+    // Only start polling if the AI analysis was still running when
+    // this page was rendered. If it already finished (success or
+    // error) there is nothing to wait for.
+    const initialProcessing = {{ 'true' if result.ai.processing else 'false' }};
+
+    let pollTimer = null;
+    let attempts = 0;
+    const maxAttempts = 60;
+
+    function setListContent(listEl, emptyEl, items) {
+
+        if (items && items.length > 0) {
+
+            listEl.innerHTML = "";
+
+            items.forEach(function (item) {
+                const li = document.createElement("li");
+                li.textContent = item;
+                listEl.appendChild(li);
+            });
+
+            listEl.style.display = "";
+            emptyEl.style.display = "none";
+
+        } else {
+
+            listEl.style.display = "none";
+            emptyEl.style.display = "";
+
+        }
+
+    }
+
+    function updateAISection(ai) {
+
+        const errorContainer = document.getElementById("ai-error-container");
+        const errorText = document.getElementById("ai-error-text");
+
+        if (ai.error) {
+            errorText.textContent = ai.error;
+            errorContainer.style.display = "";
+        } else {
+            errorContainer.style.display = "none";
+        }
+
+        document.getElementById("ai-summary-text").textContent =
+            ai.summary || "No AI summary available.";
+
+        document.getElementById("ai-risk-assessment-text").textContent =
+            ai.risk_assessment || "No AI risk assessment available.";
+
+        setListContent(
+            document.getElementById("ai-reasons-list"),
+            document.getElementById("ai-reasons-empty"),
+            ai.reasons
+        );
+
+        setListContent(
+            document.getElementById("ai-evidence-list"),
+            document.getElementById("ai-evidence-empty"),
+            ai.evidence
+        );
+
+        setListContent(
+            document.getElementById("ai-recommendations-list"),
+            document.getElementById("ai-recommendations-empty"),
+            ai.recommendations
+        );
+
+    }
+
+    function stopPolling(reason) {
+
+        if (pollTimer !== null) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            console.log("AI polling stopped:", reason);
+        }
+
+    }
+
+    function pollResult() {
+
+        attempts++;
+
+        if (attempts > maxAttempts) {
+            stopPolling("max attempts reached");
+            return;
+        }
+
+        fetch("/api/result/" + scanId)
+            .then(function (response) {
+
+                if (!response.ok) {
+                    throw new Error("HTTP " + response.status);
+                }
+
+                return response.json();
+
+            })
+            .then(function (data) {
+
+                if (!data.ai) {
+                    return;
+                }
+
+                console.log("AI processing:", data.ai.processing);
+
+                if (data.ai.processing === true) {
+                    // Still running - the interval will fire again.
+                    return;
+                }
+
+                // AI finished (success or error). Update the AI
+                // section in place - do NOT reload the page.
+                updateAISection(data.ai);
+                stopPolling("AI analysis completed");
+
+            })
+            .catch(function (error) {
+
+                // Transient network error - keep the existing timer
+                // running and just retry on the next tick.
+                console.error("AI polling error:", error);
+
+            });
+
+    }
+
+    function startPolling() {
+
+        if (pollTimer !== null) {
+            // A timer is already active - never start a second one.
+            return;
+        }
+
+        console.log("AI polling started");
+
+        pollTimer = setInterval(pollResult, 2000);
+        pollResult();
+
+    }
+
+    if (initialProcessing) {
+        startPolling();
+    }
+
+})();
+</script>
+
+{% endblock %}

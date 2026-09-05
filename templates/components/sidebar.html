@@ -1,0 +1,58 @@
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__brand">
+    <div class="sidebar__logo">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="6" fill="currentColor" opacity="0.15"/>
+        <path d="M8 10h16M8 16h12M8 22h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="24" cy="22" r="3" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="sidebar__brand-text">
+      <span class="sidebar__title">YARA AI</span>
+      <span class="sidebar__subtitle">Intelligent Malware Analysis Platform</span>
+    </div>
+  </div>
+
+  <nav class="sidebar__nav" aria-label="Main navigation">
+    <ul class="nav-list">
+      <li>
+        <a href="{{ url_for('dashboard') }}" class="nav-link{% if active_page == 'dashboard' %} active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('analysis') }}" class="nav-link{% if active_page == 'analysis' %} active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>File Analysis</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('yara_analyzer') }}" class="nav-link{% if active_page == 'yara' %} active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>YARA Rule Analyzer</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('history') }}" class="nav-link{% if active_page == 'history' %} active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Scan History</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('reports') }}" class="nav-link{% if active_page == 'reports' %} active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Reports</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar__footer">
+    <div class="sidebar__status">
+      <span class="status-dot status-dot--online"></span>
+      <span>Engine Online</span>
+    </div>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>

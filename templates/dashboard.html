@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% from 'components/macros.html' import stat_card, threat_badge, alert %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Security Dashboard</h1>
+    <p class="page-subtitle">Monitor malware analysis and YARA detection activity.</p>
+  </div>
+  <a href="{{ url_for('analysis') }}" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    New Scan
+  </a>
+</div>
+
+<div class="stats-grid">
+  {{ stat_card('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', 'Total Scans', stats.total_scans | default('1,248'), '+12% this week', 'up') }}
+  {{ stat_card('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>', 'Threats Detected', stats.threats_detected | default('327'), '+8% this week', 'up') }}
+  {{ stat_card('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>', 'High Risk', stats.high_risk | default('84'), '3 today', 'neutral') }}
+  {{ stat_card('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', 'YARA Rules', stats.yara_rules | default('156'), '12 updated', 'neutral') }}
+</div>
+
+<div class="charts-grid">
+  <div class="card chart-card">
+    <div class="card__header">
+      <h3 class="card__title">Threat Level Distribution</h3>
+    </div>
+    <div class="card__body">
+      <div class="bar-chart" id="threatDistributionChart">
+        <div class="bar-chart__item">
+          <span class="bar-chart__label">High</span>
+          <div class="bar-chart__bar-wrap">
+            <div class="bar-chart__bar bar-chart__bar--high" style="width: 22%"></div>
+          </div>
+          <span class="bar-chart__value">84</span>
+        </div>
+        <div class="bar-chart__item">
+          <span class="bar-chart__label">Medium</span>
+          <div class="bar-chart__bar-wrap">
+            <div class="bar-chart__bar bar-chart__bar--medium" style="width: 35%"></div>
+          </div>
+          <span class="bar-chart__value">132</span>
+        </div>
+        <div class="bar-chart__item">
+          <span class="bar-chart__label">Low</span>
+          <div class="bar-chart__bar-wrap">
+            <div class="bar-chart__bar bar-chart__bar--low" style="width: 28%"></div>
+          </div>
+          <span class="bar-chart__value">111</span>
+        </div>
+        <div class="bar-chart__item">
+          <span class="bar-chart__label">Safe</span>
+          <div class="bar-chart__bar-wrap">
+            <div class="bar-chart__bar bar-chart__bar--safe" style="width: 48%"></div>
+          </div>
+          <span class="bar-chart__value">921</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="card__header">
+      <h3 class="card__title">Scan Activity (Last 7 Days)</h3>
+    </div>
+    <div class="card__body">
+      <canvas id="scanActivityChart" height="200" aria-label="Scan activity chart"></canvas>
+    </div>
+  </div>
+
+  <div class="card chart-card chart-card--wide">
+    <div class="card__header">
+      <h3 class="card__title">Most Frequently Matched YARA Rules</h3>
+    </div>
+    <div class="card__body">
+      <div class="horizontal-bar-chart" id="topRulesChart">
+        <div class="horizontal-bar-chart__item">
+          <span class="horizontal-bar-chart__label">Suspicious_PDF</span>
+          <div class="horizontal-bar-chart__bar-wrap"><div class="horizontal-bar-chart__bar" style="width: 92%"></div></div>
+          <span class="horizontal-bar-chart__value">47</span>
+        </div>
+        <div class="horizontal-bar-chart__item">
+          <span class="horizontal-bar-chart__label">Packed_Executable</span>
+          <div class="horizontal-bar-chart__bar-wrap"><div class="horizontal-bar-chart__bar" style="width: 78%"></div></div>
+          <span class="horizontal-bar-chart__value">39</span>
+        </div>
+        <div class="horizontal-bar-chart__item">
+          <span class="horizontal-bar-chart__label">PowerShell_Dropper</span>
+          <div class="horizontal-bar-chart__bar-wrap"><div class="horizontal-bar-chart__bar" style="width: 65%"></div></div>
+          <span class="horizontal-bar-chart__value">33</span>
+        </div>
+        <div class="horizontal-bar-chart__item">
+          <span class="horizontal-bar-chart__label">Office_Macro_Suspicious</span>
+          <div class="horizontal-bar-chart__bar-wrap"><div class="horizontal-bar-chart__bar" style="width: 52%"></div></div>
+          <span class="horizontal-bar-chart__value">26</span>
+        </div>
+        <div class="horizontal-bar-chart__item">
+          <span class="horizontal-bar-chart__label">JS_Obfuscated</span>
+          <div class="horizontal-bar-chart__bar-wrap"><div class="horizontal-bar-chart__bar" style="width: 40%"></div></div>
+          <span class="horizontal-bar-chart__value">20</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card__header">
+    <h3 class="card__title">Recent Scans</h3>
+    <a href="{{ url_for('history') }}" class="btn btn-sm btn-secondary">View All</a>
+  </div>
+  <div class="card__body card__body--flush">
+    <div class="table-responsive">
+      <table class="data-table" id="recentScansTable">
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>SHA-256</th>
+            <th>File Type</th>
+            <th>YARA Matches</th>
+            <th>Threat Level</th>
+            <th>Confidence</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in recent_scans | default([]) %}
+          <tr>
+            <td class="data-table__filename">{{ scan.filename }}</td>
+            <td><code class="hash">{{ scan.sha256[:16] }}…</code></td>
+            <td>{{ scan.file_type }}</td>
+            <td>{{ scan.yara_matches }}</td>
+            <td>{{ threat_badge(scan.threat_level, 'sm') }}</td>
+            <td>{{ scan.confidence }}%</td>
+            <td>{{ scan.date }}</td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id=scan.id) }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="{{ url_for('report_download', report_id=scan.report_id) }}" class="btn btn-xs btn-primary">Report</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td class="data-table__filename">invoice_Q3_2026.pdf</td>
+            <td><code class="hash">a3f5b2c891d04e7a…</code></td>
+            <td>PDF</td>
+            <td>2</td>
+            <td>{{ threat_badge('HIGH', 'sm') }}</td>
+            <td>94%</td>
+            <td>2026-08-18 14:32</td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-001') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Report</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="data-table__filename">setup_update.exe</td>
+            <td><code class="hash">7e2d9f1a4b6c8035…</code></td>
+            <td>EXE</td>
+            <td>3</td>
+            <td>{{ threat_badge('HIGH', 'sm') }}</td>
+            <td>91%</td>
+            <td>2026-08-18 13:15</td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-002') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Report</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="data-table__filename">report_final.docx</td>
+            <td><code class="hash">c8b1e4f290a3756d…</code></td>
+            <td>DOCX</td>
+            <td>1</td>
+            <td>{{ threat_badge('MEDIUM', 'sm') }}</td>
+            <td>72%</td>
+            <td>2026-08-18 11:48</td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-003') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Report</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="data-table__filename">script_helper.js</td>
+            <td><code class="hash">f4a9d2e71c5830b6…</code></td>
+            <td>JS</td>
+            <td>0</td>
+            <td>{{ threat_badge('LOW', 'sm') }}</td>
+            <td>38%</td>
+            <td>2026-08-18 10:22</td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-004') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Report</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="data-table__filename">readme.txt</td>
+            <td><code class="hash">1d8e6a3f5b9247c0…</code></td>
+            <td>TXT</td>
+            <td>0</td>
+            <td>{{ threat_badge('SAFE', 'sm') }}</td>
+            <td>12%</td>
+            <td>2026-08-17 16:55</td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-005') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Report</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

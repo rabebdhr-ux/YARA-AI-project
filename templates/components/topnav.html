@@ -1,0 +1,53 @@
+<header class="topnav">
+  <div class="topnav__left">
+    <button type="button" class="topnav__menu-btn" id="menuToggle" aria-label="Toggle navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    {% block page_header %}{% endblock %}
+  </div>
+  <div class="topnav__right">
+    <button type="button" class="topnav__icon-btn" id="themeToggle" aria-label="Toggle dark/light mode">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <div class="topnav__notifications">
+      <button type="button" class="topnav__icon-btn" id="notifToggle" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="topnav__badge">3</span>
+      </button>
+      <div class="notif-dropdown" id="notifDropdown">
+        <div class="notif-dropdown__header">Notifications</div>
+        <ul class="notif-dropdown__list">
+          <li class="notif-dropdown__item notif-dropdown__item--unread">
+            <span class="notif-dropdown__title">High-risk scan completed</span>
+            <span class="notif-dropdown__time">5 min ago</span>
+          </li>
+          <li class="notif-dropdown__item">
+            <span class="notif-dropdown__title">YARA rule update available</span>
+            <span class="notif-dropdown__time">1 hour ago</span>
+          </li>
+          <li class="notif-dropdown__item">
+            <span class="notif-dropdown__title">Weekly report generated</span>
+            <span class="notif-dropdown__time">Yesterday</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="topnav__profile">
+      <button type="button" class="topnav__profile-btn" id="profileToggle" aria-label="User profile">
+        <span class="topnav__avatar">{{ user_initials | default('SA') }}</span>
+        <span class="topnav__username">{{ user_name | default('Security Analyst') }}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div class="profile-dropdown__info">
+          <span class="profile-dropdown__name">{{ user_name | default('Security Analyst') }}</span>
+          <span class="profile-dropdown__email">{{ user_email | default('analyst@security.local') }}</span>
+        </div>
+        <ul class="profile-dropdown__menu">
+          <li><a href="#">Sign Out</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>

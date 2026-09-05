@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% from 'components/macros.html' import alert, progress_step %}
+
+{% block title %}File Analysis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">File Analysis</h1>
+    <p class="page-subtitle">Upload a suspicious file for automated security analysis.</p>
+  </div>
+</div>
+
+{{ alert('warning', 'All uploaded files are treated as untrusted and analyzed in an isolated environment. Results do not guarantee a file is safe.') }}
+
+<form id="analysisForm" class="analysis-form" method="POST" action="{{ url_for('scan') }}" enctype="multipart/form-data">
+  <div class="card upload-card" id="uploadZone">
+    <div class="upload-zone" id="dropZone">
+      <div class="upload-zone__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <h3 class="upload-zone__title">Drag &amp; drop your file here</h3>
+      <p class="upload-zone__subtitle">or browse from your computer</p>
+      <input type="file" name="file" id="fileInput" class="upload-zone__input" accept=".exe,.dll,.pdf,.doc,.docx,.xls,.xlsx,.js,.vbs,.ps1,.zip,.txt,.bin" hidden>
+      <button type="button" class="btn btn-primary" id="selectFileBtn">Select File</button>
+      <div class="upload-zone__info">
+        <p><strong>Maximum file size:</strong> 20 MB</p>
+        <p><strong>Supported file types:</strong> EXE, DLL, PDF, DOC, DOCX, XLS, XLSX, JS, VBS, PS1, ZIP, TXT, BIN</p>
+      </div>
+    </div>
+
+    <div class="file-preview" id="filePreview" hidden>
+      <div class="file-preview__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="file-preview__details">
+        <span class="file-preview__name" id="previewName">—</span>
+        <div class="file-preview__meta">
+          <span id="previewSize">—</span>
+          <span class="file-preview__sep">|</span>
+          <span id="previewType">—</span>
+        </div>
+      </div>
+      <button type="button" class="btn-icon file-preview__remove" id="removeFileBtn" aria-label="Remove file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="upload-error" id="uploadError" hidden role="alert"></div>
+
+    <div class="upload-actions" id="uploadActions" hidden>
+      <button type="submit" class="btn btn-primary btn-lg" id="startAnalysisBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Start Analysis
+      </button>
+    </div>
+  </div>
+</form>
+
+<div class="card analysis-progress-card" id="analysisProgress" hidden>
+  <div class="card__header">
+    <h3 class="card__title">Analysis Progress</h3>
+    <span class="analysis-progress__status" id="progressStatus">In progress…</span>
+  </div>
+  <div class="card__body">
+    <div class="progress-steps" id="progressSteps">
+      {{ progress_step('Uploading file', 'waiting') }}
+      {{ progress_step('Extracting features', 'waiting') }}
+      {{ progress_step('Scanning with YARA', 'waiting') }}
+      {{ progress_step('Running AI analysis', 'waiting') }}
+      {{ progress_step('Generating report', 'waiting') }}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
+{% endblock %}

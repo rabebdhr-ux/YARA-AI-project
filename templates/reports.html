@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% from 'components/macros.html' import threat_badge, report_card %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Security Reports</h1>
+    <p class="page-subtitle">View and download generated analysis reports.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card__header card__header--filters">
+    <div class="filters-bar">
+      <div class="filter-group filter-group--search">
+        <label for="reportSearch">Search</label>
+        <input type="search" id="reportSearch" class="form-input" placeholder="Report ID or filename…">
+      </div>
+      <div class="filter-group">
+        <label for="reportStatus">Status</label>
+        <select id="reportStatus" class="form-select">
+          <option value="">All statuses</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card__body card__body--flush">
+    <div class="table-responsive">
+      <table class="data-table" id="reportsTable">
+        <thead>
+          <tr>
+            <th>Report ID</th>
+            <th>File Name</th>
+            <th>Threat Level</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports | default([]) %}
+          <tr data-status="{{ report.status | lower }}" data-search="{{ report.id | lower }} {{ report.filename | lower }}">
+            <td><code>{{ report.id }}</code></td>
+            <td class="data-table__filename">{{ report.filename }}</td>
+            <td>{{ threat_badge(report.threat_level, 'sm') }}</td>
+            <td>{{ report.date }}</td>
+            <td><span class="status-badge status-badge--{{ report.status | lower }}">{{ report.status }}</span></td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('report_view', report_id=report.id) }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="{{ url_for('report_download', report_id=report.id) }}" class="btn btn-xs btn-primary">Download PDF</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr data-status="completed" data-search="rpt-2026-001 invoice_q3_2026.pdf">
+            <td><code>RPT-2026-001</code></td>
+            <td class="data-table__filename">invoice_Q3_2026.pdf</td>
+            <td>{{ threat_badge('HIGH', 'sm') }}</td>
+            <td>2026-08-18 14:35</td>
+            <td><span class="status-badge status-badge--completed">Completed</span></td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-001') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Download PDF</a>
+            </td>
+          </tr>
+          <tr data-status="completed" data-search="rpt-2026-002 setup_update.exe">
+            <td><code>RPT-2026-002</code></td>
+            <td class="data-table__filename">setup_update.exe</td>
+            <td>{{ threat_badge('HIGH', 'sm') }}</td>
+            <td>2026-08-18 13:18</td>
+            <td><span class="status-badge status-badge--completed">Completed</span></td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-002') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Download PDF</a>
+            </td>
+          </tr>
+          <tr data-status="completed" data-search="rpt-2026-003 report_final.docx">
+            <td><code>RPT-2026-003</code></td>
+            <td class="data-table__filename">report_final.docx</td>
+            <td>{{ threat_badge('MEDIUM', 'sm') }}</td>
+            <td>2026-08-18 11:50</td>
+            <td><span class="status-badge status-badge--completed">Completed</span></td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-003') }}" class="btn btn-xs btn-secondary">View</a>
+              <a href="#" class="btn btn-xs btn-primary">Download PDF</a>
+            </td>
+          </tr>
+          <tr data-status="pending" data-search="rpt-2026-004 script_helper.js">
+            <td><code>RPT-2026-004</code></td>
+            <td class="data-table__filename">script_helper.js</td>
+            <td>{{ threat_badge('LOW', 'sm') }}</td>
+            <td>2026-08-18 10:25</td>
+            <td><span class="status-badge status-badge--pending">Pending</span></td>
+            <td class="data-table__actions">
+              <a href="{{ url_for('result', scan_id='demo-004') }}" class="btn btn-xs btn-secondary">View</a>
+              <button type="button" class="btn btn-xs btn-primary" disabled>Download PDF</button>
+            </td>
+          </tr>
+          <tr data-status="failed" data-search="rpt-2026-005 corrupted_file.bin">
+            <td><code>RPT-2026-005</code></td>
+            <td class="data-table__filename">corrupted_file.bin</td>
+            <td>{{ threat_badge('LOW', 'sm') }}</td>
+            <td>2026-08-17 15:10</td>
+            <td><span class="status-badge status-badge--failed">Failed</span></td>
+            <td class="data-table__actions">
+              <button type="button" class="btn btn-xs btn-secondary" disabled>View</button>
+              <button type="button" class="btn btn-xs btn-primary" disabled>Download PDF</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="reports-grid">
+  {% for report in reports_cards | default([]) %}
+  {{ report_card(report.id, report.filename, report.threat_level, report.date, report.status) }}
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

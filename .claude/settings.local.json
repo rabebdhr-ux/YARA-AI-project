@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(.venv/Scripts/python.exe -c ' *)",
-      "Bash(curl -s http://127.0.0.1:5000/api/result/fcf54fa3)",
-      "Bash(\".venv/Scripts/python.exe\" -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('processing:', d['ai']['processing']\\); print\\('summary:', d['ai']['summary'][:80]\\)\")"
-    ]
-  }
-}

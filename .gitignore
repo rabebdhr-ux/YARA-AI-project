@@ -1,0 +1,98 @@
+# ==========================================
+# YARA AI - Git Ignore
+# ==========================================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- Virtual Environment ----------
+.venv/
+venv/
+env/
+ENV/
+
+# ---------- Environment / Secrets ----------
+.env
+.env.*
+!.env.example
+
+# ---------- API Keys / Credentials ----------
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# ---------- Flask ----------
+instance/
+.webassets-cache/
+
+# ---------- Database ----------
+*.db
+*.sqlite
+*.sqlite3
+
+# ---------- Uploaded Files ----------
+uploads/
+uploads/*
+
+# ---------- Generated Reports ----------
+reports/
+generated_reports/
+output/
+*.pdf
+
+# ---------- Logs ----------
+*.log
+logs/
+*.log.*
+
+# ---------- YARA Generated / Temporary ----------
+*.yarac
+*.tmp
+*.temp
+
+# ---------- Claude Code ----------
+.claude/
+.claude-plugin/
+claude-extension/
+claude_extensions/
+
+# ---------- IDE ----------
+.vscode/
+.idea/
+*.code-workspace
+
+# ---------- Jupyter ----------
+.ipynb_checkpoints/
+
+# ---------- Windows ----------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---------- macOS ----------
+.DS_Store
+
+# ---------- Node / Frontend ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ---------- Build / Distribution ----------
+build/
+dist/
+*.egg-info/
+
+# ---------- Temporary Files ----------
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
